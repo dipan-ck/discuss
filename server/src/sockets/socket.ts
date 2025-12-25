@@ -1,12 +1,12 @@
 import { Server, Socket } from "socket.io";
-import { handleChannelJoin, handleChannelLeave } from "./channel.socket";
-import { handleSendMessage } from "./message.socket";
+import { handleChannelJoin, handleChannelLeave } from "./channel.socket.js";
+import { handleSendMessage } from "./message.socket.js";
 import {
   handleVoiceJoin,
   handleVoiceLeave,
   handleGetVoiceUsers,
   handleLeaveObserver,
-} from "./voice.socket";
+} from "./voice.socket.js";
 import {
   connectTransport,
   createConsumer,
@@ -15,7 +15,7 @@ import {
   createSendTransport,
   getRtpCapabilities,
   channelProducers,
-} from "../lib/mediasoup";
+} from "../lib/mediasoup.js";
 
 interface AuthSocket extends Socket {
   user: { id: string; email: string };

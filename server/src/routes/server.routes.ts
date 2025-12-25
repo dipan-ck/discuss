@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createServer, deleteServer, getUserServers, joinServer, leaveServer, searchServers } from "../controllers/server.controllers";
+import { createServer, deleteServer, getUserServers, joinServer, leaveServer, searchServers } from "../controllers/server.controllers.js";
 
 const router = new Hono();
 

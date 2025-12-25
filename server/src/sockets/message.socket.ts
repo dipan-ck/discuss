@@ -1,5 +1,16 @@
 import { Server, Socket } from "socket.io";
-import { messageService } from "../services/message.service";
+import { messageService } from "../services/message.service.js";
+
+// Extend Socket type to include 'user' property
+declare module "socket.io" {
+  interface Socket {
+    user?: {
+      id: string;
+      username?: string;
+      email?: string;
+    };
+  }
+}
 
 
 
@@ -22,9 +33,9 @@ export async function handleSendMessage(
       content: content.trim(),
       createdAt: new Date(),
       channelId,
-      userId: user.id,
+      userId: user?.id,
       user: {
-        username: user.username || user.email,
+        username: user?.username || user?.email,
       },
     };
 
@@ -34,7 +45,7 @@ export async function handleSendMessage(
     // Save message to database in background
     messageService.saveMessage(
       channelId,
-      user.id,
+      user?.id!,
       content.trim()
     ).catch((error) => {
       console.error("Error saving message to database:", error);

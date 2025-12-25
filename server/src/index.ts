@@ -1,16 +1,14 @@
-import 'dotenv/config';
+import 'dotenv/config.js';
 import { Server } from 'socket.io';
-import { createServer } from 'http';
 import  {serve}  from '@hono/node-server';
-import app from './app';
-import initSocket from './sockets/socket';
-import { authSocket } from './middlewares/soccketAuth.middleware';
-import { initMediasoup } from './lib/mediasoup';
-import type { Server as HTTPServer } from "node:http";
+import app from './app.js';
+import initSocket from './sockets/socket.js';
+import { authSocket } from './middlewares/soccketAuth.middleware.js';
+import { initMediasoup } from './lib/mediasoup.js';
 
 
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 8000;
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
 
 const httpServer = serve({

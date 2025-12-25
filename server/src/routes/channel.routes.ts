@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createChannel, deleteChannel, getServerChannels } from "../controllers/channel.controllers";
+import { createChannel, deleteChannel, getServerChannels } from "../controllers/channel.controllers.js";
 
 
 const router = new Hono();

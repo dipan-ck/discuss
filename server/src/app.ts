@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { authMiddleware } from "./middlewares/auth.middleware";
-import serverRoutes from "./routes/server.routes";
-import channelRoutes from "./routes/channel.routes";
-import authRoutes from "./routes/auth.routes";
-import messageRoutes from "./routes/message.routes";
+import { authMiddleware } from "./middlewares/auth.middleware.js";
+import serverRoutes from "./routes/server.routes.js";
+import channelRoutes from "./routes/channel.routes.js";
+import authRoutes from "./routes/auth.routes.js";
+import messageRoutes from "./routes/message.routes.js";
 
 const app = new Hono();
 

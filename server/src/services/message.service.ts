@@ -1,4 +1,4 @@
-import prisma from "../lib/prisma";
+import prisma from "../lib/prisma.js";
 
 class MessageService {
   async getAllMessages(channelId: string, limit: number, cursor: string) {

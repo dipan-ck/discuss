@@ -1,7 +1,7 @@
 import { Context } from "hono";
-import { channelService } from "../services/channel.service";
-import { success, ZodError } from "zod";
-import { serverService } from "../services/server.service";
+import { channelService } from "../services/channel.service.js";
+import { ZodError } from "zod";
+import { serverService } from "../services/server.service.js";
 
 export async function createChannel(c: Context) {
   try {

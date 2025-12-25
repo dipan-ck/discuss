@@ -1,0 +1,23 @@
+services:
+  discuss-server:
+    image: dipan2003/discuss-server:latest   # pulled from docker hub
+    container_name: discuss-server
+    restart: unless-stopped
+
+    # always pull the newest image when container starts
+    pull_policy: always
+
+    # load environment variables from .env (in same folder)
+    env_file:
+      - .env
+
+    # expose app port to host
+    ports:
+      - "127.0.0.1:8001:8001"
+
+    # limit CPU & memory usage on EC2
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: "512M"

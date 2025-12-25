@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { messageService } from "../services/message.service";
+import { messageService } from "../services/message.service.js";
 
 
 

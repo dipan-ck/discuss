@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { authService } from "../services/auth.service";
+import { authService } from "../services/auth.service.js";
 import { ZodError } from "zod";
 import { setCookie, deleteCookie } from "hono/cookie";
 

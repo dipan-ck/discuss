@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { serverService } from "../services/server.service";
+import { serverService } from "../services/server.service.js";
 import { ZodError } from "zod";
 
 export async function createServer(c: Context) {

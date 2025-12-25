@@ -1,4 +1,4 @@
-import { authService } from "../services/auth.service";
+import { authService } from "../services/auth.service.js";
 import cookie from "cookie";
 import { Socket } from "socket.io";
 

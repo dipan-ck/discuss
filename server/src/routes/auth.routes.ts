@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { getUser, loginUser, logoutUser, signupUser, deleteAccount } from "../controllers/auth.controller";
-import { authMiddleware } from "../middlewares/auth.middleware";
+import { getUser, loginUser, logoutUser, signupUser, deleteAccount } from "../controllers/auth.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = new Hono();
 
