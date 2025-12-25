@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Loader2, UserPlus, MessageSquare, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,27 +33,19 @@ function Page() {
     try {
       await signupUser(formData.email, formData.username, formData.password);
       
-      // Fetch user data and update store before redirecting
       const userData = await getUser();
-      
-      // Generate and store avatar color
       const avatarColor = generateAvatarColor();
       localStorage.setItem(`avatar-color-${userData.data.id}`, avatarColor);
-      
-      // Set user with profile color
       setUser({ ...userData.data, profileColor: avatarColor });
       
-      // Now redirect to home
       router.push("/");
     } catch (err: any) {
       const errorData = err.response?.data;
 
       if (errorData?.error) {
-        // Handle string error
         if (typeof errorData.error === "string") {
           setErrorMsg(errorData.error);
         } 
-        // Handle Zod validation errors
         else if (errorData.error.fieldErrors) {
           const firstError = Object.values(errorData.error.fieldErrors)
             .flat()
@@ -74,116 +66,185 @@ function Page() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted/20">
-      <Card className="w-full max-w-md shadow-lg border-muted/40">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-2">
-            <div className="p-3 rounded-full bg-primary/10">
-              <UserPlus className="w-6 h-6 text-primary" />
+    <div className="flex min-h-screen">
+      {/* Left Side - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-12 flex-col justify-between relative overflow-hidden">
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-sm">
+              <MessageSquare className="w-8 h-8 text-white" />
+            </div>
+            <span className="text-2xl font-bold text-white">Discuss</span>
+          </div>
+          
+          <div className="space-y-6 mt-16">
+            <h1 className="text-5xl font-bold text-white leading-tight">
+              Connect with your community
+            </h1>
+            <p className="text-xl text-white/80 max-w-md">
+              Join thousands of communities, create channels, and chat with friends in real-time.
+            </p>
+          </div>
+        </div>
+
+        <div className="relative z-10 space-y-4">
+          <div className="flex items-start gap-3 text-white/90">
+            <Sparkles className="w-5 h-5 mt-1 flex-shrink-0" />
+            <div>
+              <p className="font-semibold">Instant Communication</p>
+              <p className="text-sm text-white/70">Real-time messaging and voice chat</p>
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-          <CardDescription>Sign up to get started with your journey</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* ERROR MESSAGE */}
-            {errorMsg && (
-              <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
-                <p className="text-sm text-destructive font-medium">{errorMsg}</p>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="johndoe"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                disabled={isLoading}
-                required
-                className="h-11"
-              />
+          <div className="flex items-start gap-3 text-white/90">
+            <Sparkles className="w-5 h-5 mt-1 flex-shrink-0" />
+            <div>
+              <p className="font-semibold">Organized Channels</p>
+              <p className="text-sm text-white/70">Keep conversations structured and searchable</p>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                disabled={isLoading}
-                required
-                className="h-11"
-              />
+          </div>
+          <div className="flex items-start gap-3 text-white/90">
+            <Sparkles className="w-5 h-5 mt-1 flex-shrink-0" />
+            <div>
+              <p className="font-semibold">Custom Servers</p>
+              <p className="text-sm text-white/70">Build your perfect community space</p>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a strong password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  disabled={isLoading}
-                  required
-                  className="h-11 pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                  disabled={isLoading}
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Must be at least 6 characters long
+      {/* Right Side - Form */}
+      <div className="flex-1 flex items-center justify-center p-6 bg-background">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <MessageSquare className="w-6 h-6 text-primary" />
+            </div>
+            <span className="text-xl font-bold">Discuss</span>
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-2 text-center lg:text-left">
+              <h2 className="text-3xl font-bold tracking-tight">Create your account</h2>
+              <p className="text-muted-foreground">
+                Get started with Discuss in seconds
               </p>
             </div>
 
-            <Button type="submit" className="w-full h-11" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                <>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Sign Up
-                </>
-              )}
-            </Button>
+            <Card className="border-muted/40 shadow-lg">
+              <CardContent className="pt-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {errorMsg && (
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 animate-in slide-in-from-top-2">
+                      <p className="text-sm text-destructive font-medium">{errorMsg}</p>
+                    </div>
+                  )}
 
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-muted" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">
-                  Already have an account?
-                </span>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="username" className="text-sm font-medium">
+                      Username
+                    </Label>
+                    <Input
+                      id="username"
+                      type="text"
+                      placeholder="johndoe"
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      disabled={isLoading}
+                      required
+                      className="h-11 transition-all focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      disabled={isLoading}
+                      required
+                      className="h-11 transition-all focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium">
+                      Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Create a strong password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        disabled={isLoading}
+                        required
+                        className="h-11 pr-10 transition-all focus:ring-2 focus:ring-primary/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                        disabled={isLoading}
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Must be at least 6 characters long
+                    </p>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 font-medium" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating account...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Sign Up
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <Link 
+                  href="/login" 
+                  className="font-medium text-primary hover:underline underline-offset-4 transition-all"
+                >
+                  Sign in
+                </Link>
+              </p>
             </div>
 
-            <Link href="/login">
-              <Button type="button" variant="outline" className="w-full h-11">
-                Sign In
-              </Button>
-            </Link>
-          </form>
-        </CardContent>
-      </Card>
+            <p className="text-xs text-center text-muted-foreground px-8">
+              By signing up, you agree to our Terms of Service and Privacy Policy
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

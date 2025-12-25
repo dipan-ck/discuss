@@ -1,13 +1,23 @@
+"use client";
+
 import { useAuthStore } from '@/store/user.store'
 import { useUiStore } from '@/store/ui.store'
 import React, { useState, useEffect, useRef } from 'react'
 import { logoutUser } from '@/services/user.service'
 import { getAvatarColor } from '@/lib/avatar'
+import { useTheme } from 'next-themes'
+import { Moon, Sun, Monitor } from 'lucide-react'
+import ThemeToggleButton from './ThemeToggleButton';
 
 function UserAvatar() {
     const user = useAuthStore((state) => state.user);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -28,7 +38,6 @@ function UserAvatar() {
     const handleLogout = async () => {
         try {
             await logoutUser();
-            // Redirect to login page
             window.location.href = '/login';
         } catch (error) {
             console.error('Logout failed:', error);
@@ -41,8 +50,9 @@ function UserAvatar() {
         setIsOpen(false);
     };
 
-    // Get consistent avatar color from user profile or localStorage
     const avatarColor = user ? getAvatarColor(user.id, user.profileColor) : 'bg-gray-500';
+
+
 
     return (
         <div className="relative border-t bg-muted/30 p-2" ref={dropdownRef}>
@@ -87,11 +97,17 @@ function UserAvatar() {
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute bottom-full left-2 right-2 mb-2 bg-popover rounded-md shadow-lg border z-50 overflow-hidden">
+                <div className="absolute bottom-full left-2 right-2 mb-2 bg-popover rounded-md shadow-lg border z-50 overflow-hidden animate-in slide-in-from-bottom-2">
                     <div className="bg-muted/50 px-3 py-2 border-b">
                         <div className="font-semibold text-sm">{user?.username}</div>
                         <div className="text-xs text-muted-foreground">{user?.email || 'user@example.com'}</div>
                     </div>
+
+                    {/* Theme Toggle Section */}
+                    {mounted && (
+                         <ThemeToggleButton/>
+                    )}
+
                     <button
                         onClick={handleViewProfile}
                         className="w-full text-left px-3 py-2 hover:bg-muted transition-colors text-sm flex items-center gap-2"

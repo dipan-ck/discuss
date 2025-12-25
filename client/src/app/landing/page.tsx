@@ -2,6 +2,7 @@ import React from 'react';
 import { MessageSquare, Hash, Users, Mic, Search, Server, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import ThemeToggleButton from '@/components/ThemeToggleButton';
 
 function Page() {
   const features = [
@@ -48,9 +49,10 @@ function Page() {
               <span className="text-xl font-bold">Discuss</span>
             </div>
             <div className="flex items-center gap-4">
+              <ThemeToggleButton/>
               <Button variant="outline" asChild>
                 <a
-                  href="https://github.com/yourusername/discord-clone"
+                  href="https://github.com/dipan-ck/discuss"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2"
@@ -81,11 +83,11 @@ function Page() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             <Button size="lg" asChild>
-              <a href="/login">Launch App</a>
+              <a href="/login">Get Started</a>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <a
-                href="https://github.com/yourusername/discord-clone"
+                href="https://github.com/dipan-ck/discuss"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2"
@@ -147,14 +149,14 @@ function Page() {
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-6 h-6 text-primary" />
-              <span className="font-semibold">Discourse</span>
+              <span className="font-semibold">Discuss</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Built with React & shadcn/ui
+              Developed by Dipan Chakraborty
             </p>
             <Button variant="link" asChild>
               <a
-                href="https://github.com/yourusername/discord-clone"
+                href="https://github.com/dipan-ck/discuss"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2"

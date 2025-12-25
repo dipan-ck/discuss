@@ -14,8 +14,13 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const publicRoutes = ['/login', '/signup'];
+  // Public routes that anyone can access
+  const publicRoutes = ['/login', '/signup', '/landing'];
   const isPublicRoute = publicRoutes.includes(pathname);
+  
+  // Auth routes that logged-in users should not access
+  const authRoutes = ['/login', '/signup'];
+  const isAuthRoute = authRoutes.includes(pathname);
 
   async function fetchUser(){
      try{
@@ -44,15 +49,16 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading) {
-    if (user && isPublicRoute) {
-      // Logged in user trying to access login/signup
-      router.replace('/');
-    } else if (!user && !isPublicRoute) {
-      // Logged out user trying to access protected route
-      router.replace('/login');
+      if (user && isAuthRoute) {
+        // Logged in user trying to access login/signup - redirect to home
+        router.replace('/');
+      } else if (!user && !isPublicRoute) {
+        // Logged out user trying to access protected route - redirect to login
+        router.replace('/login');
+      }
+      // Note: /landing is accessible to everyone, so no redirect needed
     }
-    }
-  }, [loading, user, isPublicRoute, pathname]);
+  }, [loading, user, isAuthRoute, isPublicRoute, pathname]);
 
   // Show loading spinner while fetching user
   if (loading) {
@@ -64,7 +70,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   // Prevent rendering children if redirect is needed
-  if (user && isPublicRoute) {
+  if (user && isAuthRoute) {
     // Logged in user on login/signup page - show loading while redirecting
     return (
       <div className="flex items-center justify-center min-h-screen">

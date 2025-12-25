@@ -10,7 +10,7 @@ const app = new Hono();
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
 
-// CORS
+
 app.use('*', cors({
   origin: allowedOrigins,
   credentials: true
@@ -19,15 +19,15 @@ app.use('*', cors({
 
 
 
-// Routes (auth routes should be before middleware)
+
 app.route("/api/auth", authRoutes);
 
 
 
-// Auth middleware for protected routes
+
 app.use('/api/*', authMiddleware);
 
-// Protected routes
+
 app.route("/api/server", serverRoutes);
 app.route("/api/channel", channelRoutes);
 app.route("/api/message", messageRoutes);
