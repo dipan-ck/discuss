@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import socket from "@/lib/socket";
 import { useVoiceStore } from "@/store/voice.store";
 import { useAuthStore } from "@/store/user.store";
@@ -9,6 +9,7 @@ import { useMediasoupClient } from "./useMediasoupClient";
 export function useVoiceChannel(channel: any) {
   const { users, isJoined, setUsers, setJoined } = useVoiceStore();
   const currentUser = useAuthStore((s) => s.user);
+  const isJoiningRef = useRef(false);
   const {
     loadDevice,
     createSendTransport,
@@ -41,31 +42,67 @@ export function useVoiceChannel(channel: any) {
 
   async function joinVoice() {
     if (!channel) return;
+    
+    // Prevent multiple simultaneous join attempts
+    if (isJoiningRef.current) {
+      console.log("⚠️ Join already in progress, skipping");
+      return;
+    }
+
+    isJoiningRef.current = true;
+
+    // Always cleanup previous resources before joining a new channel
+    cleanup();
 
     try {
+      console.log("🎤 Starting voice join process for channel:", channel.id);
+      
       await loadDevice();
+      console.log("✅ Device loaded");
+      
       await createSendTransport(channel.id);
+      console.log("✅ Send transport created");
+      
       await createRecvTransport(channel.id);
+      console.log("✅ Recv transport created");
+      
       await produceMic(channel.id);
+      console.log("✅ Mic producer created");
 
       socket.emit("voice:get-producers", channel.id, async (res: any) => {
-        for (const p of res.producers) {
-          if (p.producerUserId === currentUser?.id) continue;
-          await consume(channel.id, p.producerUserId);
+        try {
+          for (const p of res.producers) {
+            if (p.producerUserId === currentUser?.id) continue;
+            await consume(channel.id, p.producerUserId);
+          }
+        } catch (err) {
+          console.error("Error consuming existing producers:", err);
         }
       });
 
       socket.on("voice:new-producer", async ({ producerUserId }: any) => {
-        if (producerUserId === currentUser?.id) return;
-        await consume(channel.id, producerUserId);
+        try {
+          if (producerUserId === currentUser?.id) return;
+          await consume(channel.id, producerUserId);
+        } catch (err) {
+          console.error("Error consuming new producer:", err);
+        }
       });
 
       socket.emit("voice:join", channel.id);
       setJoined(channel.id, true);
+      console.log("✅ Successfully joined voice channel");
     } catch (err) {
+      console.error("❌ Error joining voice channel:", err);
       setJoined(channel.id, false);
+      // Cleanup on error
+      cleanup();
+    } finally {
+      isJoiningRef.current = false;
     }
-  }  function leaveVoice() {
+  }
+
+  function leaveVoice() {
     if (!channel) return;
     cleanup();
     socket.emit("voice:leave", channel.id);

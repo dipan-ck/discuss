@@ -49,11 +49,33 @@ export function useMediasoupClient() {
   // 2) Create Send Transport
   // ------------------------------------------------------
   async function createSendTransport(channelId: string) {
-    const { transport } = await new Promise<any>((resolve) => {
-      socket.emit("voice:create-transport", channelId, (data: any) => resolve(data));
+    // Ensure old transport is fully cleaned up first
+    if (sendTransportRef.current) {
+      console.log("⚠️ Old send transport exists, cleaning up first");
+      try {
+        sendTransportRef.current.removeAllListeners();
+        sendTransportRef.current.close();
+      } catch (e) {
+        console.warn("Error closing old send transport:", e);
+      }
+      sendTransportRef.current = null;
+    }
+
+    const response = await new Promise<any>((resolve, reject) => {
+      socket.emit("voice:create-transport", channelId, (data: any) => {
+        if (data.status === "error") {
+          reject(new Error(data.error || "Failed to create send transport"));
+        } else {
+          resolve(data);
+        }
+      });
     });
 
-    const sendTransport = device.current!.createSendTransport(transport);
+    if (!response.transport) {
+      throw new Error("No transport data received from server");
+    }
+
+    const sendTransport = device.current!.createSendTransport(response.transport);
     sendTransportRef.current = sendTransport;
 
     sendTransport.on("connect", ({ dtlsParameters }, callback, errback) => {
@@ -61,8 +83,13 @@ export function useMediasoupClient() {
         "voice:connect-transport",
         { dtlsParameters },
         (res: any) => {
-          if (res.status === "ok") callback();
-          else errback(res.error);
+          if (res.status === "ok") {
+            console.log("✅ Send transport connected");
+            callback();
+          } else {
+            console.error("❌ Send transport connection failed:", res.error);
+            errback(new Error(res.error || "Failed to connect send transport"));
+          }
         }
       );
     });
@@ -73,12 +100,21 @@ export function useMediasoupClient() {
         { channelId, kind, rtpParameters },
         (res: any) => {
           if (res.status === "ok") {
+            console.log("✅ Producer created:", res.producerId);
             callback({ id: res.producerId });
           } else {
+            console.error("❌ Producer creation failed:", res.error);
             errback(new Error(res.error || "Failed to produce"));
           }
         }
       );
+    });
+
+    sendTransport.on("connectionstatechange", (state) => {
+      console.log("Send transport connection state:", state);
+      if (state === "failed" || state === "disconnected") {
+        console.error("❌ Send transport connection state:", state);
+      }
     });
 
     return sendTransport;
@@ -88,13 +124,33 @@ export function useMediasoupClient() {
   // 3) Create Recv Transport
   // ------------------------------------------------------
   async function createRecvTransport(channelId: string) {
-    const { transport } = await new Promise<any>((resolve) => {
-      socket.emit("voice:create-recv-transport", channelId, (data: any) =>
-        resolve(data)
-      );
+    // Ensure old transport is fully cleaned up first
+    if (recvTransportRef.current) {
+      console.log("⚠️ Old recv transport exists, cleaning up first");
+      try {
+        recvTransportRef.current.removeAllListeners();
+        recvTransportRef.current.close();
+      } catch (e) {
+        console.warn("Error closing old recv transport:", e);
+      }
+      recvTransportRef.current = null;
+    }
+
+    const response = await new Promise<any>((resolve, reject) => {
+      socket.emit("voice:create-recv-transport", channelId, (data: any) => {
+        if (data.status === "error") {
+          reject(new Error(data.error || "Failed to create recv transport"));
+        } else {
+          resolve(data);
+        }
+      });
     });
 
-    const recvTransport = device.current!.createRecvTransport(transport);
+    if (!response.transport) {
+      throw new Error("No transport data received from server");
+    }
+
+    const recvTransport = device.current!.createRecvTransport(response.transport);
     recvTransportRef.current = recvTransport;
 
     recvTransport.on("connect", ({ dtlsParameters }, callback, errback) => {
@@ -102,10 +158,22 @@ export function useMediasoupClient() {
         "voice:connect-recv-transport",
         { dtlsParameters },
         (res: any) => {
-          if (res.status === "ok") callback();
-          else errback(res.error);
+          if (res.status === "ok") {
+            console.log("✅ Recv transport connected");
+            callback();
+          } else {
+            console.error("❌ Recv transport connection failed:", res.error);
+            errback(new Error(res.error || "Failed to connect recv transport"));
+          }
         }
       );
+    });
+
+    recvTransport.on("connectionstatechange", (state) => {
+      console.log("Recv transport connection state:", state);
+      if (state === "failed" || state === "disconnected") {
+        console.error("❌ Recv transport connection state:", state);
+      }
     });
 
     return recvTransport;
@@ -115,17 +183,32 @@ export function useMediasoupClient() {
   // 4) Produce Mic Audio
   // ------------------------------------------------------
   async function produceMic(channelId: string) {
-    localStreamRef.current = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-    });
+    if (!sendTransportRef.current) {
+      throw new Error("Send transport not initialized");
+    }
 
-    const track = localStreamRef.current.getAudioTracks()[0];
-    const producer = await sendTransportRef.current.produce({ track });
+    try {
+      localStreamRef.current = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
 
-    
-  micProducerRef.current = producer; 
+      const track = localStreamRef.current.getAudioTracks()[0];
+      if (!track) {
+        throw new Error("No audio track available");
+      }
 
-    return producer;
+      const producer = await sendTransportRef.current.produce({ track });
+      micProducerRef.current = producer;
+
+      return producer;
+    } catch (error) {
+      // Clean up the stream if produce fails
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((t) => t.stop());
+        localStreamRef.current = null;
+      }
+      throw error;
+    }
   }
 
   // ------------------------------------------------------
@@ -205,22 +288,49 @@ function unmute() {
   // 6) Cleanup State
   // ------------------------------------------------------
   function cleanup() {
+    console.log("🧹 Cleaning up mediasoup resources");
+    
     audioElementsRef.current.forEach((el) => {
       el.pause();
       el.srcObject = null;
     });
     audioElementsRef.current.clear();
 
-    consumersRef.current.forEach((c) => c.close());
+    consumersRef.current.forEach((c) => {
+      try {
+        c.close();
+      } catch (e) {
+        console.warn("Error closing consumer:", e);
+      }
+    });
     consumersRef.current.clear();
 
+    if (micProducerRef.current) {
+      try {
+        micProducerRef.current.close();
+      } catch (e) {
+        console.warn("Error closing mic producer:", e);
+      }
+      micProducerRef.current = null;
+    }
+
     if (sendTransportRef.current) {
-      sendTransportRef.current.close();
+      try {
+        sendTransportRef.current.removeAllListeners();
+        sendTransportRef.current.close();
+      } catch (e) {
+        console.warn("Error closing send transport:", e);
+      }
       sendTransportRef.current = null;
     }
 
     if (recvTransportRef.current) {
-      recvTransportRef.current.close();
+      try {
+        recvTransportRef.current.removeAllListeners();
+        recvTransportRef.current.close();
+      } catch (e) {
+        console.warn("Error closing recv transport:", e);
+      }
       recvTransportRef.current = null;
     }
 
@@ -229,6 +339,7 @@ function unmute() {
       localStreamRef.current = null;
     }
 
+    setIsMuted(false);
     socket.off("voice:new-producer");
   }
 
