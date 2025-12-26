@@ -1,6 +1,8 @@
 services:
   discuss-server:
-    image: dipan2003/discuss-server:latest   # pulled from docker hub
+    build:
+      context: .            # current directory
+      dockerfile: Dockerfile
     container_name: discuss-server
     restart: unless-stopped
 
@@ -11,9 +13,11 @@ services:
     env_file:
       - .env
 
-    # expose app port to host
+        # Use bridge network instead of host
     ports:
-      - "127.0.0.1:8001:8001"
+      - "8001:8001"           # HTTP/WebSocket
+      - "40000-40100:40000-40100/udp"  # ⭐ Mediasoup RTC ports
+      - "40000-40100:40000-40100/tcp"  # ⭐ Mediasoup RTC ports
 
     # limit CPU & memory usage on EC2
     deploy:

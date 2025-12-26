@@ -31,7 +31,11 @@ export const channelProducers: Record<
 
 
 export async function initMediasoup() {
-  worker = await mediasoup.createWorker();
+  worker = await mediasoup.createWorker({
+    logLevel: "warn",
+      rtcMinPort: 40000,
+    rtcMaxPort: 40100,
+  });
 
   router = await worker.createRouter({
     mediaCodecs: [
@@ -40,6 +44,7 @@ export async function initMediasoup() {
         mimeType: "audio/opus",
         clockRate: 48000,
         channels: 2,
+        
       },
     ],
   });
@@ -70,6 +75,7 @@ export async function createSendTransport(
     enableUdp: true,
     enableTcp: true,
     preferUdp: true,
+    
   });
 
   if (!channelTransports[channelId]) channelTransports[channelId] = {};
@@ -91,7 +97,9 @@ export async function createRecvTransport(
 ) {
   if (!router) throw new Error("Router not ready");
 
-const announcedIp = process.env.ANNOUNCED_IP || "127.0.0.1";
+const announcedIp = process.env.ANNOUNCED_IP;
+if (!announcedIp) throw new Error("ANNOUNCED_IP missing! Must be public IP.");
+
 
 const transport = await router.createWebRtcTransport({
     listenIps: [{ ip: "0.0.0.0", announcedIp }],

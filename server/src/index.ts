@@ -8,7 +8,7 @@ import { initMediasoup } from './lib/mediasoup.js';
 
 
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 8000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 8001;
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
 
 const httpServer = serve({

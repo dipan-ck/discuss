@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
-    libc6 \
+    gcc \
+    libc6-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -31,7 +32,14 @@ RUN npm ci --omit=dev
 # runner stage
 FROM node:22-slim AS runner
 
-RUN apt-get update && apt-get install -y ca-certificates openssl \
+# ⭐ CRITICAL: Install mediasoup runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    openssl \
+    libssl3 \
+    libc6 \
+    libstdc++6 \
+    libgcc-s1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -42,6 +50,7 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 
-
 EXPOSE 8001
+
+# ⭐ Add more verbose logging to see errors
 CMD ["node", "dist/index.js"]
