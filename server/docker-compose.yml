@@ -1,27 +1,27 @@
 services:
-  discuss-server:
-    build:
-      context: .            # current directory
-      dockerfile: Dockerfile
-    container_name: discuss-server
-    restart: unless-stopped
+    discuss-server:
+        build:
+            context: . # current directory
+            dockerfile: Dockerfile
+        container_name: discuss-server
+        restart: unless-stopped
 
-    # always pull the newest image when container starts
-    pull_policy: always
+        # always pull the newest image when container starts
+        pull_policy: always
 
-    # load environment variables from .env (in same folder)
-    env_file:
-      - .env
+        # load environment variables from .env (in same folder)
+        env_file:
+            - .env
 
-        # Use bridge network instead of host
-    ports:
-      - "8001:8001"           # HTTP/WebSocket
-      - "40000-40100:40000-40100/udp"  # ⭐ Mediasoup RTC ports
-      - "40000-40100:40000-40100/tcp"  # ⭐ Mediasoup RTC ports
+              # Use bridge network instead of host
+        ports:
+            - "8001:8001" # HTTP/WebSocket
+            - "40000-40100:40000-40100/udp" # ⭐ Mediasoup RTC ports
+            - "40000-40100:40000-40100/tcp" # ⭐ Mediasoup RTC ports
 
-    # limit CPU & memory usage on EC2
-    deploy:
-      resources:
-        limits:
-          cpus: "0.50"
-          memory: "512M"
+        # limit CPU & memory usage on EC2
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.50"
+                    memory: "512M"

@@ -1,0 +1,50 @@
+name: Build & Deploy Discuss Server
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            # ----------------------------
+            # Login to Docker Hub
+            # ----------------------------
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
+
+            # ----------------------------
+            # Build & Push Image
+            # ----------------------------
+            - name: Build and Push Docker Image
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./server
+                  push: true
+                  tags: |
+                      dipan2003/discuss-server:latest
+                      dipan2003/discuss-server:${{ github.sha }}
+
+            # ----------------------------
+            # Deploy to EC2
+            # ----------------------------
+            - name: Deploy to EC2
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                  host: ${{ secrets.EC2_HOST }}
+                  username: ubuntu
+                  key: ${{ secrets.EC2_SSH_KEY }}
+                  script: |
+                      cd /home/ubuntu/dev/discuss
+                      docker compose -f docker-compose.yml pull
+                      docker compose -f docker-compose.yml down
+                      docker compose -f docker-compose.yml up -d

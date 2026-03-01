@@ -1,0 +1,20 @@
+services:
+    discuss-server:
+        image: dipan2003/discuss-server:latest
+        container_name: discuss-server
+        restart: unless-stopped
+        pull_policy: always
+
+        env_file:
+            - .env
+
+        ports:
+            # API only accessible internally (via Nginx)
+            - "127.0.0.1:8001:8001"
+
+            # ⭐ Mediasoup must remain public
+            - "40000-40100:40000-40100/udp"
+            - "40000-40100:40000-40100/tcp"
+
+        mem_limit: 512m
+        cpus: 0.5

@@ -1,7 +1,9 @@
-# builder stage
+# =========================
+# 1️⃣ Builder Stage
+# =========================
 FROM node:22-slim AS builder
 
-# Install build dependencies required for mediasoup
+# Install build tools (needed for mediasoup native compilation)
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -12,27 +14,32 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy dependencies first (cache layer)
+# Copy only package files first (better caching)
 COPY package*.json ./
+
+# Install ALL deps (including dev)
 RUN npm ci
 
-# Copy source code (including generated prisma client)
-COPY src ./src
-COPY prisma ./prisma
+# Copy rest of project
 COPY tsconfig.json ./
+COPY prisma ./prisma
+COPY src ./src
 
-# Build TypeScript only (no prisma generate)
+# Generate Prisma client
+RUN npx prisma generate
+
+# Build TypeScript
 RUN npm run build
 
-# Remove dev dependencies (shrinks prod image)
-RUN npm ci --omit=dev
+# Remove dev dependencies (cleaner than reinstall)
+RUN npm prune --omit=dev
 
-
-
-# runner stage
+# =========================
+# 2️⃣ Runtime Stage
+# =========================
 FROM node:22-slim AS runner
 
-# ⭐ CRITICAL: Install mediasoup runtime dependencies
+# Install runtime libraries required by mediasoup
 RUN apt-get update && apt-get install -y \
     ca-certificates \
     openssl \
@@ -44,13 +51,16 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy compiled app + prod deps
+# Copy production node_modules + built app
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+COPY package*.json ./
 
 EXPOSE 8001
 
-# ⭐ Add more verbose logging to see errors
+ENV NODE_ENV=production
+
 CMD ["node", "dist/index.js"]
+
+# docker build -t dipan2003/discuss-server:latest .
