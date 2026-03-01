@@ -8,25 +8,21 @@ import messageRoutes from "./routes/message.routes.js";
 
 const app = new Hono();
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",")
+    : [];
 
-
-app.use('*', cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
-
-
-
-
+app.use(
+    "*",
+    cors({
+        origin: allowedOrigins,
+        credentials: true,
+    }),
+);
 
 app.route("/api/auth", authRoutes);
 
-
-
-
-app.use('/api/*', authMiddleware);
-
+app.use("/api/*", authMiddleware);
 
 app.route("/api/server", serverRoutes);
 app.route("/api/channel", channelRoutes);
